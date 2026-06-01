@@ -1,0 +1,43 @@
+name: wind-load-forecasting
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+dependencies:
+  # Python版本
+  - python=3.10
+  
+  # 深度学习框架
+  - pytorch::pytorch
+  - pytorch::torchvision
+  - pytorch::torchaudio
+  - pytorch::pytorch-cuda=12.1
+  
+  # 数据处理库
+  - numpy>=1.23.0
+  - pandas>=1.5.0
+  
+  # 数据可视化
+  - matplotlib>=3.7.0
+  - seaborn>=0.12.0
+  
+  # 科学计算和机器学习
+  - scikit-learn>=1.2.0
+  - scipy>=1.10.0
+  - pillow>=9.0.0
+  
+  # 开发工具
+  - jupyter>=1.0.0
+  - jupyterlab>=3.6.0
+  - ipython>=8.10.0
+  
+  # 时间序列处理
+  - statsmodels>=0.14.0
+  
+  # 其他工具
+  - pip
+
+pip:
+  # 可选的Python包
+  # - torch-geometric  # 图神经网络
+  # - optuna  # 超参数优化
