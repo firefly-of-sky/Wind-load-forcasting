@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 风电负荷时序预测 - 完整Demo
-演示从数据生成到模型训练、评估的完整流程
+演示从真实数据加载到模型训练、评估的完整流程
 """
 
 import sys
@@ -13,7 +13,7 @@ import torch
 # 添加项目路径
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from utils.data_loader import generate_synthetic_data, create_data_loaders
+from utils.data_loader import load_real_data
 from models.lstm_model import LSTMForecaster, AttentionLSTMForecaster
 from utils.trainer import Trainer
 
@@ -65,34 +65,20 @@ def main():
     print("=" * 60)
     
     # =====================
-    # 1. 数据生成
+    # 1. 数据加载
     # =====================
-    print("\n[1/5] 生成合成数据...")
-    data = generate_synthetic_data(num_samples=1000)
-    print(f"✓ 生成了 {data.shape[0]} 个样本")
-    print(f"✓ 每个样本包含 {data.shape[1]} 个特征: [负荷(MW), 风速(m/s), 温度(°C)]")
-    
-    # 显示数据统计
-    print("\n数据统计信息:")
-    print(f"  负荷   - 均值: {data[:, 0].mean():.2f}, 标准差: {data[:, 0].std():.2f}")
-    print(f"  风速   - 均值: {data[:, 1].mean():.2f}, 标准差: {data[:, 1].std():.2f}")
-    print(f"  温度   - 均值: {data[:, 2].mean():.2f}, 标准差: {data[:, 2].std():.2f}")
-    
-    # =====================
-    # 2. 数据加载
-    # =====================
-    print("\n[2/5] 准备数据加载器...")
+    print("\n[1/4] 加载真实风机数据...")
+    data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
     sequence_length = 24  # 使用过去24小时预测下一小时
     batch_size = 32
-    
-    train_loader, val_loader, test_loader, scaler = create_data_loaders(
-        data,
+
+    train_loader, val_loader, test_loader, scaler = load_real_data(
+        data_dir=data_dir,
         sequence_length=sequence_length,
-        batch_size=batch_size,
-        train_ratio=0.7,
-        val_ratio=0.15
+        batch_size=batch_size
     )
-    
+
+    print(f"✓ 特征: ActivePower(负荷), WindSpeed(风速), Temperature(温度)")
     print(f"✓ 时序长度: {sequence_length} 步")
     print(f"✓ 批次大小: {batch_size}")
     print(f"✓ 训练样本数: {len(train_loader.dataset)}")
@@ -102,7 +88,7 @@ def main():
     # =====================
     # 3. 模型构建
     # =====================
-    print("\n[3/5] 构建模型...")
+    print("\n[2/4] 构建模型...")
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(f"✓ 使用设备: {device}")
     
@@ -130,7 +116,7 @@ def main():
     # =====================
     # 4. 模型训练
     # =====================
-    print("\n[4/5] 训练模型...")
+    print("\n[3/4] 训练模型...")
     trainer = Trainer(model, device=device, learning_rate=0.001)
     
     trainer.train(
@@ -143,7 +129,7 @@ def main():
     # =====================
     # 5. 模型评估
     # =====================
-    print("\n[5/5] 评估模型...")
+    print("\n[4/4] 评估模型...")
     metrics, predictions, targets = trainer.evaluate(test_loader)
     
     print("\n测试集性能指标:")

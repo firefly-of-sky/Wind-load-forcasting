@@ -174,3 +174,46 @@ def create_data_loaders(data, sequence_length=24, batch_size=32, train_ratio=0.7
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
     
     return train_loader, val_loader, test_loader, scaler
+
+
+def load_real_data(data_dir='data', sequence_length=24, batch_size=32):
+    """
+    加载预处理并切分好的真实风机数据
+
+    Args:
+        data_dir: 数据目录路径
+        sequence_length: 时序长度
+        batch_size: 批次大小
+
+    Returns:
+        train_loader, val_loader, test_loader: 数据加载器
+        scaler: 数据归一化器
+    """
+    import os
+
+    # 加载预切分的 .npy 文件
+    train_data = np.load(os.path.join(data_dir, 'train_data.npy'))
+    val_data = np.load(os.path.join(data_dir, 'val_data.npy'))
+    test_data = np.load(os.path.join(data_dir, 'test_data.npy'))
+
+    print(f"  训练集: {train_data.shape[0]} 条")
+    print(f"  验证集: {val_data.shape[0]} 条")
+    print(f"  测试集: {test_data.shape[0]} 条")
+
+    # 用训练集拟合归一化器，再统一归一化
+    scaler = StandardScaler()
+    train_normalized = scaler.fit_transform(train_data)
+    val_normalized = scaler.transform(val_data)
+    test_normalized = scaler.transform(test_data)
+
+    # 创建数据集
+    train_dataset = WindLoadDataset(train_normalized, sequence_length)
+    val_dataset = WindLoadDataset(val_normalized, sequence_length)
+    test_dataset = WindLoadDataset(test_normalized, sequence_length)
+
+    # 创建数据加载器
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+
+    return train_loader, val_loader, test_loader, scaler
