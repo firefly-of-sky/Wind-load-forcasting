@@ -1,0 +1,21 @@
+# Python 缓存
+__pycache__/
+*.pyc
+*.pyo
+
+# 训练产物
+*.pth
+best_model.pth
+
+# 结果输出
+results/
+
+# IDE
+.vscode/
+.idea/
+
+# Conda
+*.egg-info/
+
+# macOS
+.DS_Store

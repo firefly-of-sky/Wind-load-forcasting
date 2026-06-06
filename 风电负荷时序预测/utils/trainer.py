@@ -164,7 +164,9 @@ class Trainer:
                 if patience_counter >= early_stopping_patience:
                     print(f"\n早停触发: 在第 {epoch+1} 个epoch后停止训练")
                     # 加载最好的模型
-                    self.model.load_state_dict(torch.load('best_model.pth'))
+                    self.model.load_state_dict(
+                        torch.load('best_model.pth', map_location=self.device, weights_only=True)
+                    )
                     break
         
         print("训练完成！")

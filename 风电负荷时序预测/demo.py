@@ -89,7 +89,13 @@ def main():
     # 3. 模型构建
     # =====================
     print("\n[2/4] 构建模型...")
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    # 自动检测最佳计算设备：CUDA > MPS > CPU
+    if torch.cuda.is_available():
+        device = 'cuda'
+    elif torch.backends.mps.is_available():
+        device = 'mps'
+    else:
+        device = 'cpu'
     print(f"✓ 使用设备: {device}")
     
     # 模型超参数
