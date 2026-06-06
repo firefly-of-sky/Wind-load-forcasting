@@ -36,7 +36,8 @@
 │   └── test_data.npy        # 测试集 (15%)
 ├── results/                 # 输出：训练好的模型与结果图
 ├── README.md
-└── environment.yml          # Conda 环境配置文件
+├── environment.yml          # Conda 环境配置 (NVIDIA GPU)
+└── environment_mac.yml      # Conda 环境配置 (Apple Silicon)
 ```
 
 ## 功能特性
@@ -54,7 +55,7 @@
   - 早停机制 + 最佳模型自动保存
 - **评估指标**：MSE、RMSE、MAE、R²
 - **可视化**：损失曲线 + 预测值 vs 真实值对比图
-- **GPU 加速**：支持 CUDA（兼容 NVIDIA RTX 5060 / Blackwell 架构）
+- **GPU 加速**：支持 NVIDIA CUDA 与 Apple Silicon MPS (Metal) 双后端加速
 
 ## 开发环境
 
@@ -62,12 +63,14 @@
 
 ## 环境要求
 
+### 通用依赖
+
 | 依赖库 | 版本 |
 |--------|------|
 | Python | 3.10 |
-| PyTorch | 2.11.0+cu128 |
-| torchvision | 0.26.0 |
-| torchaudio | 2.11.0 |
+| PyTorch | ≥2.0 |
+| torchvision | ≥0.15 |
+| torchaudio | ≥2.0 |
 | NumPy | ≥1.23.0 |
 | Pandas | ≥1.5.0 |
 | Matplotlib | ≥3.7.0 |
@@ -77,27 +80,56 @@
 | Statsmodels | ≥0.14.0 |
 | Jupyter / JupyterLab | ≥3.6.0 |
 
+### 硬件加速支持
+
+| 平台 | 后端 | 配置文件 |
+|------|------|----------|
+| NVIDIA GPU (CUDA) | CUDA 12.1+ | `environment.yml` |
+| Apple Silicon (M 系列芯片) | MPS (Metal) | `environment_mac.yml` |
+| 纯 CPU | — | 任一文件均可 |
+
 ## 环境配置
 
-### 1. 创建 Conda 环境
+### 1. 选择配置文件
+
+根据你的硬件平台选择对应的环境文件：
+
+| 平台 | 配置文件 | 加速后端 |
+|------|----------|----------|
+| NVIDIA GPU | `environment.yml` | CUDA |
+| Apple Silicon (M1/M2/M3/M4/M5) | `environment_mac.yml` | MPS (Metal) |
+| 纯 CPU | 任一文件均可 | — |
+
+### 2. 创建 Conda 环境
 
 ```bash
+# NVIDIA GPU 用户
 conda env create -f environment.yml
+
+# Apple Silicon 用户
+conda env create -f environment_mac.yml
+
+# 激活环境（通用）
 conda activate wind-load-forecasting
-```
-
-### 2. NVIDIA RTX 50 系列 (Blackwell) GPU 用户须知
-
-`environment.yml` 中的默认 PyTorch 版本可能不支持 Blackwell 架构 (sm_120) 的新显卡，需手动升级：
-
-```bash
-pip install --upgrade torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
 ```
 
 ### 3. 验证安装
 
 ```bash
-python -c "import torch; print(torch.cuda.is_available()); print(torch.cuda.get_device_name(0))"
+python -c "import torch; print('PyTorch:', torch.__version__); print('MPS available:', torch.backends.mps.is_available()); print('CUDA available:', torch.cuda.is_available())"
+```
+
+**预期输出**：
+- **Apple Silicon**: `MPS available: True`
+- **NVIDIA GPU**: `CUDA available: True`
+- 若两者均为 `False`，将回退到 CPU 运行（训练较慢，但功能正常）
+
+### 4. NVIDIA RTX 50 系列 (Blackwell) GPU 用户须知
+
+`environment.yml` 中的默认 PyTorch 版本可能不支持 Blackwell 架构 (sm_120) 的新显卡，需手动升级：
+
+```bash
+pip install --upgrade torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
 ```
 
 ## 使用方法
@@ -159,11 +191,11 @@ Demo 执行流程：
 ✓ 测试样本数: 1290
 
 [2/4] 构建模型...
-✓ 使用设备: cuda
+✓ 使用设备: mps
 ✓ 模型参数总数: 53,057
 
 [3/4] 训练模型...
-开始训练模型 (设备: cuda)
+开始训练模型 (设备: mps)
 早停触发: 在第 13 个epoch后停止训练
 
 [4/4] 评估模型...
